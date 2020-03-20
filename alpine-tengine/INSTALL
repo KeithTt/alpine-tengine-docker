@@ -1,0 +1,161 @@
+添加安装源
+
+# vim /etc/apk/repositories
+https://mirrors.ustc.edu.cn/alpine/edge/main
+https://mirrors.ustc.edu.cn/alpine/edge/community
+https://mirrors.ustc.edu.cn/alpine/edge/testing
+
+安装sshd
+
+# apk update
+# apk add openssh
+# rc-service sshd start
+# rc-update add sshd
+
+修改sshd配置文件，允许root登录
+
+# vim /etc/ssh/sshd_config
+PermitRootLogin yes
+
+这时就可以用终端远程连接了。
+
+配置网络
+
+# vim /etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+        hostname alpine
+
+auto eth1
+iface eth1 inet static
+        address 192.168.1.108
+        netmask 255.255.255.0
+        gateway 192.168.0.1
+
+安装vim和bash
+
+# apk add vim bash
+
+安装用户管理包
+
+# apk add shadow
+
+修改shell为bash
+
+# usermod -s /bin/bash root
+
+安装nginx
+
+# apk add nginx
+
+查看包从哪个源安装
+
+# apk policy nginx
+nginx policy:
+  1.12.2-r5:
+    lib/apk/db/installed
+    etc/apk/cache
+    https://mirrors.ustc.edu.cn/alpine/edge/main
+
+查看包内容
+
+# apk info -a nginx
+
+或者
+
+# apk manifest nginx | awk '{print $2}'
+etc/logrotate.d/nginx
+etc/init.d/nginx
+etc/nginx/scgi_params
+etc/nginx/fastcgi_params
+etc/nginx/uwsgi_params
+etc/nginx/fastcgi.conf
+etc/nginx/mime.types
+etc/nginx/nginx.conf
+etc/nginx/conf.d/default.conf
+usr/sbin/nginx
+usr/lib/perl5/vendor_perl/x86_64-linux-thread-multi/nginx.pm
+usr/lib/perl5/vendor_perl/x86_64-linux-thread-multi/perllocal.pod
+usr/lib/perl5/vendor_perl/x86_64-linux-thread-multi/auto/nginx/nginx.so
+usr/lib/perl5/vendor_perl/x86_64-linux-thread-multi/auto/nginx/.packlist
+usr/lib/perl5/vendor_perl/man3/nginx.3pm
+var/lib/nginx/tmp
+var/lib/nginx/modules
+var/lib/nginx/run
+var/lib/nginx/logs
+var/lib/nginx/html/index.html
+var/lib/nginx/html/50x.html
+
+安装python3
+
+# apk add python3 python3-dev
+
+安装开发包
+
+# apk add alpine-sdk
+(1/26) Installing fakeroot (1.22-r0)
+(2/26) Installing sudo (1.8.22-r2)
+(3/26) Installing pax-utils (1.2.2-r1)
+(4/26) Installing libressl2.6-libtls (2.6.4-r0)
+(5/26) Installing libressl (2.6.4-r0)
+(6/26) Installing libattr (2.4.47-r6)
+(7/26) Installing attr (2.4.47-r6)
+(8/26) Installing tar (1.30-r0)
+(9/26) Installing patch (2.7.6-r1)
+(10/26) Installing lzip (1.19-r2)
+(11/26) Installing abuild (3.1.0-r4)
+Executing abuild-3.1.0-r4.pre-install
+(12/26) Installing libmagic (5.32-r0)
+(13/26) Installing file (5.32-r0)
+(14/26) Installing g++ (6.4.0-r6)
+(15/26) Installing fortify-headers (0.9-r0)
+(16/26) Installing build-base (0.5-r1)
+(17/26) Installing lz4-libs (1.8.1.2-r0)
+(18/26) Installing lzo (2.10-r2)
+(19/26) Installing squashfs-tools (4.3-r4)
+(20/26) Installing libburn (1.4.8-r0)
+(21/26) Installing libedit (20170329.3.1-r3)
+(22/26) Installing libacl (2.2.52-r4)
+(23/26) Installing libisofs (1.4.8-r0)
+(24/26) Installing libisoburn (1.4.8-r0)
+(25/26) Installing xorriso (1.4.8-r0)
+(26/26) Installing alpine-sdk (0.5-r0)
+
+编译安装tengine
+
+# apk add libressl-dev openldap-dev zlib-dev pcre-dev
+# mkdir /usr/local/src
+# cd /usr/local/src
+# git clone https://github.com/kvspb/nginx-auth-ldap.git
+# wget http://tengine.taobao.org/download/tengine-2.2.0.tar.gz
+# tar xvf tengine-2.2.0.tar.gz
+# cd tengine-2.2.0/
+# ./configure --prefix=/usr/local/nginx --with-http_reqstat_module=shared --add-module=../nginx-auth-ldap
+# make -j 2
+# make install
+# make dso_install
+
+前台运行tengine
+
+# /usr/local/nginx/sbin/nginx -g "daemon off;"
+
+修改配置文件，添加一个指令
+
+# vim /usr/local/nginx/conf/nginx.conf
+daemon off;
+
+安装supervisor
+
+# apk add supervisor
+# mkdir /var/log/supervisor     需要手动创建这个目录，不然无法启动supervisord
+
+https://github.com/Supervisor/supervisor/issues/480
+
+修改supervisor配置文件
+
+# vim /etc/supervisord.conf
+[program:nginx-app]
+command = /usr/local/nginx/sbin/nginx
